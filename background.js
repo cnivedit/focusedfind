@@ -35,16 +35,6 @@ async function saveKeywordsToSessionStorage(keywords) {
     }
 }
 
-async function getKeywordsFromSessionStorage() {
-    try {
-        const result = await chrome.storage.session.get("keywords");
-        return result.keywords || [];
-    } catch (error) {
-        console.error("Error retrieving keywords from session storage:", error);
-        return [];
-    }
-}
-
 chrome.runtime.onMessage.addListener(async (message, sender, senderResponse) => {
     if (message.action === "userSearchQuery") {
          queryLLM(message);

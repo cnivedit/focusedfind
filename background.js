@@ -1,47 +1,36 @@
+importScripts('scripts/autofillAssistant.js');
+
 chrome.runtime.onInstalled.addListener(() => {
     console.log("FocusedFind installed.");
+    createSession();
 });
 
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-    if (changeInfo.status === "complete" && tab.url?.includes("google.com/search")) {
-        console.log(`Search detected in tab ${tabId} (${tab.url})`);
-
+chrome.runtime.onMessage.addListener(async (message, sender, senderResponse) => {
+    if (message.action == "fetchKeywords") {
         try {
-            const keywords = await getTabKeywords(tabId); // Pass the current tab ID
+            const keywords = await getTabKeywords();
             console.log("Extracted keywords from other tabs:", keywords);
 
-            // Save the keywords in session storage
             await saveKeywordsToSessionStorage(keywords);
-
-            // Notify popup or content script about the update
-            chrome.runtime.sendMessage({ action: "updateKeywords", keywords });
-            chrome.tabs.sendMessage(tabId, { action: "filterSearchResults", keywords });
+        
         } catch (error) {
-            console.error("Error fetching keywords or sending message:", error);
+            console.error("Error fetching keywords: ", error);
         }
     }
 });
 
-// Function to get keywords from all tabs except the current one
-async function getTabKeywords(currentTabId) {
-    const tabs = await chrome.tabs.query({}); // Get all open tabs
+async function getTabKeywords() {
+    const tabs = await chrome.tabs.query({});
     let keywords = [];
-    
-    for (let tab of tabs) {
-        // Skip the current tab
-        if (tab.id === currentTabId || !tab.url || !tab.url.startsWith("http")) {
-            continue;
-        }
 
+    for (let tab of tabs) {
         try {
             const tabContent = await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
-                func: () => document.body.innerText, // Extract visible text
+                func: () => document.body.innerText, 
             });
 
-            // Check if we successfully got content from the tab
             if (tabContent[0]?.result) {
-                // Add keywords (limit to 50 per tab)
                 keywords.push(...tabContent[0].result.split(/\s+/).slice(0, 50));
             }
         } catch (error) {
@@ -52,17 +41,14 @@ async function getTabKeywords(currentTabId) {
     return keywords;
 }
 
-// Save keywords to session storage
 async function saveKeywordsToSessionStorage(keywords) {
     try {
-        // Fetch existing keywords from session storage
+    
         const result = await chrome.storage.session.get("keywords");
         const existingKeywords = result.keywords || [];
 
-        // Merge the new keywords with existing ones (avoiding duplicates)
         const updatedKeywords = [...new Set([...existingKeywords, ...keywords])];
 
-        // Save the updated keywords back to session storage
         await chrome.storage.session.set({ keywords: updatedKeywords });
 
         console.log("Keywords saved to session storage:", updatedKeywords);
@@ -71,7 +57,6 @@ async function saveKeywordsToSessionStorage(keywords) {
     }
 }
 
-// Retrieve keywords from session storage
 async function getKeywordsFromSessionStorage() {
     try {
         const result = await chrome.storage.session.get("keywords");
@@ -81,3 +66,9 @@ async function getKeywordsFromSessionStorage() {
         return [];
     }
 }
+
+chrome.runtime.onMessage.addListener(async (message, sender, senderResponse) => {
+    if (message.action === "userSearchQuery") {
+         queryLLM(message);
+    }
+});

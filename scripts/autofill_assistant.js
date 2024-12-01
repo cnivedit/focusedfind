@@ -2,7 +2,9 @@ let session = null;
 
 async function createSession() {
     session = await ai.languageModel.create({
-        systemPrompt: "You are a friendly, helpful assistant specialized in predicting user's search given keywords that describe the user's workflow context."
+        systemPrompt: `You are a friendly, helpful assistant specializing in predicting a user's search 
+        intent based on keywords that describe their workflow and context.
+        `
     });
     console.log("LLM session:", session);
 }
@@ -10,8 +12,8 @@ async function createSession() {
 async function getResponse(session, query, keywords) {
     const formattedKeywords = keywords.join(", ");
     const prompt = `
-            Given the keywords: ${formattedKeywords}, which describe the search context,
-            provide 5 predictions on what the user is searching for if the user has entered: ${query}
+            Based on the keywords: ${formattedKeywords}, which describe the user's search context, 
+            provide 5 possible search queries the user might enter: ${query}.
         `;
     console.log(prompt);
     try {
@@ -32,7 +34,7 @@ async function queryLLM(message) {
                 return;
             }
             console.log("calling llm");
-            
+
             const result = await getResponse(session, message.query, keywords);
             if (result) {
                 console.log("LLM Predictions:", result);

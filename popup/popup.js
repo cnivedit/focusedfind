@@ -1,15 +1,18 @@
-chrome.runtime.onMessage.addListener((message) => {
-    if (message.action === "updateKeywords") {
-        const keywords = message.keywords;
+chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === "session" && changes.keywords) {
+        const updatedKeywords = changes.keywords.newValue || [];
         const list = document.getElementById("keywords");
+        
         list.innerHTML = "";
-        keywords.forEach((keyword) => {
+
+        updatedKeywords.forEach((keyword) => {
             const li = document.createElement("li");
             li.textContent = keyword;
             list.appendChild(li);
         });
     }
 });
+
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {

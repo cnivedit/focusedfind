@@ -1,18 +1,9 @@
 chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName === "session" && changes.keywords) {
         const updatedKeywords = changes.keywords.newValue || [];
-        const list = document.getElementById("keywords");
-        
-        list.innerHTML = "";
-
-        updatedKeywords.forEach((keyword) => {
-            const li = document.createElement("li");
-            li.textContent = keyword;
-            list.appendChild(li);
-        });
+        updateKeywords(updatedKeywords);
     }
 });
-
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -21,12 +12,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (keywords.length > 0) {
             console.log("Loaded keywords:", keywords);
-            const list = document.getElementById("keywords");
-            keywords.forEach((keyword) => {
-                const li = document.createElement("li");
-                li.textContent = keyword;
-                list.appendChild(li);
-            });
+            updateKeywords(keywords);
         } else {
             console.log("No keywords found.");
             document.getElementById('keywords').textContent = "No keywords available.";
@@ -35,3 +21,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error("Error retrieving keywords:", error);
     }
 });
+
+async function updateKeywords(updatedKeywords) {
+    const list = document.getElementById("keywords");
+        
+    list.innerHTML = "";
+
+    updatedKeywords.forEach((keyword) => {
+        const li = document.createElement("li");
+        li.textContent = keyword;
+        list.appendChild(li);
+    });
+}

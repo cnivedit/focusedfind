@@ -1,4 +1,4 @@
-importScripts('scripts/autofillAssistant.js');
+importScripts('scripts/autofill_assistant.js');
 
 chrome.runtime.onInstalled.addListener(() => {
     console.log("FocusedFind installed.");

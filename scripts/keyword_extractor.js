@@ -4,9 +4,12 @@ async function getTabKeywords() {
 
     for (let tab of tabs) {
         try {
+            if (tab.url.startsWith("chrome://")) {
+                continue;
+            }
             const tabContent = await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
-                func: () => document.body.innerText, 
+                func: () => document.body.innerText,
             });
 
             if (tabContent[0]?.result) {

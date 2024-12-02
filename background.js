@@ -37,6 +37,8 @@ async function saveKeywordsToSessionStorage(keywords) {
 
 chrome.runtime.onMessage.addListener(async (message, sender, senderResponse) => {
     if (message.action === "userSearchQuery") {
-         queryLLM(message);
+        const suggestions = await queryLLM(message);
+        console.log("received sugg" + suggestions);
+        chrome.runtime.sendMessage({action: "displaySuggestions", suggestions: suggestions})
     }
 });

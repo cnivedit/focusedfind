@@ -2,7 +2,6 @@ importScripts('scripts/autofill_assistant.js', 'scripts/keyword_extractor.js');
 
 chrome.runtime.onInstalled.addListener(() => {
     console.log("FocusedFind installed.");
-    createSession();
 });
 
 chrome.runtime.onMessage.addListener(async (message, sender, senderResponse) => {
@@ -38,7 +37,7 @@ async function saveKeywordsToSessionStorage(keywords) {
 chrome.runtime.onMessage.addListener(async (message, sender, senderResponse) => {
     if (message.action === "userSearchQuery") {
         const suggestions = await queryLLM(message);
-        console.log("received sugg" + suggestions);
+        console.log("received sugg: " + suggestions);
         chrome.runtime.sendMessage({action: "displaySuggestions", suggestions: suggestions})
     }
 });

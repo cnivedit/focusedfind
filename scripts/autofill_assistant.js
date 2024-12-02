@@ -1,19 +1,26 @@
 let session = null;
 
 async function createSession() {
-    session = await ai.languageModel.create({
-        systemPrompt: `You are a friendly, helpful assistant specializing in predicting a user's search 
-        intent based on keywords that describe their workflow and context. Provide the predictions in the
-        following format
-        Suggestions:
-        1. Text
-        2. Text
-        `
-    });
-    console.log("LLM session:", session);
+    try {
+        session = await ai.languageModel.create({
+            systemPrompt: `You are a friendly, helpful assistant specializing in predicting a user's search 
+                intent based on keywords that describe their workflow and context. Provide the predictions in the
+                following format
+                Suggestions:
+                1. Text
+                2. Text
+                `
+        });
+        return session;
+    } catch (error) {
+        console.error("Error creating session:", error);
+    }
 }
 
 async function getResponse(session, query, keywords) {
+    if (!session) {
+        session = await createSession();
+    }
     const formattedKeywords = keywords.join(", ");
     const prompt = `
             Based on the keywords: ${formattedKeywords}, which describe the user's search context, 
@@ -31,25 +38,34 @@ async function getResponse(session, query, keywords) {
 
 async function queryLLM(message) {
     try {
-        chrome.storage.session.get(["keywords"], async (data) => {
-            const keywords = data.keywords || [];
-            if (keywords.length === 0) {
-                console.warn("No keywords available in storage.");
-                return;
-            }
-            console.log("calling llm");
-
-            const result = await getResponse(session, message.query, keywords);
-            if (result) {
-                console.log("LLM Predictions:", result);
-
-            }
+        const data = await new Promise((resolve, reject) => {
+            chrome.storage.session.get(["keywords"], (data) => {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError);
+                } else {
+                    resolve(data);
+                }
+            });
         });
+
+        const keywords = data.keywords || [];
+        if (keywords.length === 0) {
+            console.warn("No keywords available in storage.");
+            return null;  // Return null if no keywords are found
+        }
+
+        console.log("calling llm");
+
+        const result = await getResponse(session, message.query, keywords);
+        if (result) {
+            console.log("LLM Predictions:", result);
+            return parseResponse(result);  // Return the parsed response
+        }
+
     } catch (error) {
         console.error("Error processing user search query:", error);
-
+        return null;  // Return null on error
     }
-    return true;
 }
 
 function parseResponse(response) {

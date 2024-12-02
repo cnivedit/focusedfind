@@ -7,8 +7,17 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {
-        const result = await chrome.storage.session.get("keywords");
-        const keywords = result.keywords || [];
+        const data = await new Promise((resolve, reject) => {
+            chrome.storage.session.get(["keywords"], (data) => {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError);
+                } else {
+                    resolve(data);
+                }
+            });
+        });
+
+        const keywords = data.keywords || [];
 
         if (keywords.length > 0) {
             console.log("Loaded keywords:", keywords);

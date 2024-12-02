@@ -38,6 +38,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, senderResponse) => 
     if (message.action === "userSearchQuery") {
         const suggestions = await queryLLM(message);
         console.log("received sugg: " + suggestions);
-        chrome.runtime.sendMessage({action: "displaySuggestions", suggestions: suggestions})
+        chrome.tabs.sendMessage(sender.tab.id, {action: "displaySuggestions", suggestions: suggestions})
     }
 });

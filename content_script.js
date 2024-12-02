@@ -1,21 +1,24 @@
-/* chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === "filterSearchResults") {
-    const keywords = message.keywords;
-    const results = document.querySelectorAll("a h3"); // Search result titles (Google-specific)
-    console.log("reached");
-    results.forEach((result) => {
-      const parent = result.closest("div"); // The result container
-      const text = result.innerText.toLowerCase();
-      const isRelevant = keywords.some(keyword => text.includes(keyword.toLowerCase()));
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "displaySuggestions") {
+    const suggestions = message.suggestions;
+    const suggestionBox = document.querySelector('.aajZCb');
+    const searchInput = document.querySelector('[name="q"]');
+    suggestionBox.innerHTML = "";
 
-      if (!isRelevant) {
-        console.log(result.innerText);
-        parent.style.display = "none"; // Hide irrelevant results
-      }
+    suggestions.forEach((suggestion) => {
+      const suggestionItem = document.createElement("li");
+      suggestionItem.className = "sbct"; // Mimic Google's suggestion styling
+      suggestionItem.innerHTML = `<span>${suggestion}</span>`;
 
+      suggestionItem.addEventListener("click", () => {
+        searchInput.value = suggestion;
+        searchInput.form.submit();
+      });
+
+      suggestionBox.appendChild(suggestionItem);
     });
   }
-}); */
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("fired");
